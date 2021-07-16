@@ -5,7 +5,7 @@ const app = express();
 app.use(express.json());
 
 const cors = require('cors');
-app.use(cors());
+app.use(cors({origin: '*'}));
 
 // Testing connection with database
 // app.get("/time", async (_req, res) => {
