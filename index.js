@@ -171,7 +171,7 @@ app.post("/api/cities", async (req, res) => {
 app.get("/api/comments", async (_req, res) => {
     try {
       const { rows } = await db.query(
-        "SELECT * from comments ORDER BY id ASC;"
+        "SELECT * from comment ORDER BY id ASC;"
       );
       res.json(rows);
     } catch (e) {
