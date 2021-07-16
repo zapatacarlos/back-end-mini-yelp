@@ -182,8 +182,6 @@ app.get("/api/comments", async (_req, res) => {
     }
   });
 
-
-
 //Joining the restaurant and comments tables
 app.get("/api/:id/comments", (req, res) => {
   const { id } = req.params;
@@ -239,35 +237,33 @@ app.get("/api/:id/restaurants",(req, res) => {
 
 
 // Joining the restaurants tags and city tables 
-// app.get("/api/:id/restaurants_tags_cities",(req, res) => {
-//   const { id } = req.params;
-//   db.query(
-//     `  
-//     SELECT
-//   restaurants.id,
-//   restaurants.name as restaurant,
-//   restaurants.long,
-//   restaurants.lat,
-//   restaurants.image_url,
-//   city.name as city,
-//   tag.name as tag
-// FROM restaurants
-// JOIN city
-//   ON restaurants.city_id=city.id
-// JOIN restaurant_has_tag
-//   ON restaurants.id=restaurant_has_tag.id_restaurant
-// JOIN tag
-//   ON restaurant_has_tag.id_tag=tag.id;
-//     `,
-//     [id]
-//   )
-//     .then((data) => {
-//       if (!data.rows.length)
-//         return res.send("This restaurant does not exist in this city.");
-//       res.json(data.rows);
-//     })
-//     .catch((err) => console.error(err));
-// });
+app.get("/api/restaurants_tags_cities",(req, res) => {
+  db.query(
+    `  
+    SELECT
+  restaurants.id,
+  restaurants.name as restaurant,
+  restaurants.long,
+  restaurants.lat,
+  restaurants.image_url,
+  city.name as city,
+  tag.name as tag
+FROM restaurants
+JOIN city
+  ON restaurants.city_id=city.id
+JOIN restaurant_has_tag
+  ON restaurants.id=restaurant_has_tag.id_restaurant
+JOIN tag
+  ON restaurant_has_tag.id_tag=tag.id;
+    `
+  )
+    .then((data) => {
+      if (!data.rows.length)
+        return res.send("This restaurant does not exist in this city.");
+      res.json(data.rows);
+    })
+    .catch((err) => console.error(err));
+});
 
 // SELECT r.id, r.name as restaurant_name, r.lan, r.lat, c.id as city_id, c.name as city_name, r.picture 
 //     FROM restaurant r 
