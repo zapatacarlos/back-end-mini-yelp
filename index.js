@@ -200,7 +200,7 @@ app.get("/api/:id/comments", (req, res) => {
     JOIN comment c
         ON r.id = c.restaurant_id
         WHERE r.id = $1
-    GROUP BY r.name, r.city_id, r.long, r.lat. r.image_url
+    GROUP BY r.name, r.city_id, r.long, r.lat, r.image_url
     `,
     [id]
   )
@@ -220,7 +220,7 @@ app.get("/api/:id/restaurants",(req, res) => {
     `  
     SELECT 
         c.name,
-        ARRAY_AGG(JSON_BUILD_OBJECT('name', r.name, 'city_id', r.city_id, 'image_url', r.image_url)) AS restaurants
+        ARRAY_AGG(JSON_BUILD_OBJECT('name', r.name, 'city_id', r.city_id, 'long', r.long, 'lat', r.lat, 'image_url', r.image_url)) AS restaurants
     FROM city c
     JOIN restaurants r
         ON c.id = r.city_id
@@ -238,19 +238,26 @@ app.get("/api/:id/restaurants",(req, res) => {
 });
 
 
-//Joining the restaurants tags and city tables 
+// Joining the restaurants tags and city tables 
 // app.get("/api/:id/restaurants_tags_cities",(req, res) => {
 //   const { id } = req.params;
 //   db.query(
 //     `  
-//     SELECT 
-//         c.name,
-//         ARRAY_AGG(JSON_BUILD_OBJECT('name', c.name)) AS comment
-//     FROM restaurants r
-//     JOIN city c
-//         ON r.id = c.restaurant_id
-//         WHERE r.id = $1
-//     GROUP BY r.name, r.city_id, r.long, r.lat. r.image_url
+//     SELECT
+//   restaurants.id,
+//   restaurants.name as restaurant,
+//   restaurants.long,
+//   restaurants.lat,
+//   restaurants.image_url,
+//   city.name as city,
+//   tag.name as tag
+// FROM restaurants
+// JOIN city
+//   ON restaurants.city_id=city.id
+// JOIN restaurant_has_tag
+//   ON restaurants.id=restaurant_has_tag.id_restaurant
+// JOIN tag
+//   ON restaurant_has_tag.id_tag=tag.id;
 //     `,
 //     [id]
 //   )
@@ -261,6 +268,21 @@ app.get("/api/:id/restaurants",(req, res) => {
 //     })
 //     .catch((err) => console.error(err));
 // });
+
+// SELECT r.id, r.name as restaurant_name, r.lan, r.lat, c.id as city_id, c.name as city_name, r.picture 
+//     FROM restaurant r 
+//     LEFT OUTER JOIN city c ON c.id = r.city_id 
+//     JOIN restaurant_has_tag rt ON rt.id_restaurant = r.id
+//     JOIN tag t ON t.id = rt.id_tag
+//     WHERE lower(t.name) LIKE $1 
+//     ORDER BY r.id;
+
+
+
+
+
+
+
 
 
 // student -> city
