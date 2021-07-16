@@ -4,6 +4,9 @@ const express = require("express");
 const app = express();
 app.use(express.json());
 
+const cors = require('cors');
+app.use(cors());
+
 // Testing connection with database
 // app.get("/time", async (_req, res) => {
 //     try {
@@ -104,14 +107,14 @@ app.get("/api/cities/:id", async (req, res) => {
 app.post("/api/restaurants", async (req, res) => {
   try {
     // console.log(res);
-    const { name, city_id, long, lat } = req.body;
+    const { name, city_id, long, lat, image_url } = req.body;
     const createOneRestaurant = {
       text: `
-            INSERT INTO restaurants (name, city_id, long, lat)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO restaurants (name, city_id, long, lat, image_url)
+            VALUES ($1, $2, $3, $4, $5)
             RETURNING *
             `,
-      values: [name, city_id, long, lat],
+      values: [name, city_id, long, lat, image_url],
     };
 
     const { rows: restaurantData } = await db.query(createOneRestaurant);
@@ -181,8 +184,7 @@ app.get("/api/comments", async (_req, res) => {
 
 
 
-//Joining the tables
-
+//Joining the restaurant and comments tables
 app.get("/api/:id/comments", (req, res) => {
   const { id } = req.params;
   db.query(
@@ -192,12 +194,13 @@ app.get("/api/:id/comments", (req, res) => {
         r.city_id,
         r.long,
         r.lat,
+        r.image_url,
         ARRAY_AGG(JSON_BUILD_OBJECT('text', c.text, 'date', c.date)) AS comment
     FROM restaurants r
     JOIN comment c
         ON r.id = c.restaurant_id
         WHERE r.id = $1
-    GROUP BY r.name, r.city_id, r.long, r.lat
+    GROUP BY r.name, r.city_id, r.long, r.lat. r.image_url
     `,
     [id]
   )
@@ -208,6 +211,93 @@ app.get("/api/:id/comments", (req, res) => {
     })
     .catch((err) => console.error(err));
 });
+
+
+//Joining the restaurants and cities tables 
+app.get("/api/:id/restaurants",(req, res) => {
+  const { id } = req.params;
+  db.query(
+    `  
+    SELECT 
+        c.name,
+        ARRAY_AGG(JSON_BUILD_OBJECT('name', r.name, 'city_id', r.city_id, 'image_url', r.image_url)) AS restaurants
+    FROM city c
+    JOIN restaurants r
+        ON c.id = r.city_id
+        WHERE c.id = $1
+    GROUP BY c.name
+    `,
+    [id]
+  )
+    .then((data) => {
+      if (!data.rows.length)
+        return res.send("This restaurant does not exist in this city.");
+      res.json(data.rows);
+    })
+    .catch((err) => console.error(err));
+});
+
+
+//Joining the restaurants tags and city tables 
+// app.get("/api/:id/restaurants_tags_cities",(req, res) => {
+//   const { id } = req.params;
+//   db.query(
+//     `  
+//     SELECT 
+//         c.name,
+//         ARRAY_AGG(JSON_BUILD_OBJECT('name', c.name)) AS comment
+//     FROM restaurants r
+//     JOIN city c
+//         ON r.id = c.restaurant_id
+//         WHERE r.id = $1
+//     GROUP BY r.name, r.city_id, r.long, r.lat. r.image_url
+//     `,
+//     [id]
+//   )
+//     .then((data) => {
+//       if (!data.rows.length)
+//         return res.send("This restaurant does not exist in this city.");
+//       res.json(data.rows);
+//     })
+//     .catch((err) => console.error(err));
+// });
+
+
+// student -> city
+// course->restaurant
+// student_coutse->restaurant_has_tag
+
+
+// SELECT
+//   student.first_name,
+//   student.last_name,
+//   course.name
+// FROM student
+// JOIN student_course
+//   ON student.id = student_course.student_id
+// JOIN course
+//   ON course.id = student_course.course_id;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 //Joining the tables
